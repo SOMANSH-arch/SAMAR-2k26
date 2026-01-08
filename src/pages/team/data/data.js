@@ -11,7 +11,7 @@ export const teamData = [
     name: "James Miller",
     role: "Lead Developer",
     description: "Coding the future of technology.",
-    image: "https://randomuser.me/api/portraits/men/32.jpg",
+    image: "/a1.jpg",
     socials: ["in", "github", "mail"],
   },
   {

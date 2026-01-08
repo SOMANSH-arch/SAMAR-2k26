@@ -11,7 +11,7 @@ const TeamCard = ({ member }) => {
 
       <div className="relative bg-white/5 rounded-3xl border-3 border-blue-300/30 shadow-2xl">
         <div className="relative bg-white/5 rounded-3xl px-6 py-2 border m-1 border-white/30 shadow-2xl">
-          <div className="relative w-46 h-46 mx-auto mb-6">
+          <div className="relative w-48 h-48 mx-auto mb-6">
             <div className="absolute inset-0 rounded-full bg-blue-200/20 blur-2xl"></div>
 
             {/* Injected SVG Functionality */}
@@ -33,7 +33,7 @@ const TeamCard = ({ member }) => {
             {role}
           </p>
           <div className="w-full h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent mb-5"></div>
-          <p className="text-gray-200 text-center text-sm mb-8 leading-relaxed truncate w-48">
+          <p className="text-gray-200 mx-auto text-sm mb-8 leading-relaxed truncate w-48 ">
             {description}
           </p>
         </div>

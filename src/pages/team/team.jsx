@@ -1,78 +1,108 @@
-// components/TeamSection.jsx
 import TeamCard from "./Card.jsx";
 import { teamData } from "./data/data.js";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 
 export default function Team() {
-	const videoRef = useRef(null);
+  const videoRef = useRef(null);
+  const sectionRef = useRef(null);
 
-	useEffect(() => {
-		const video = videoRef.current;
-		if (!video) return;
+  // 1. MEMOIZATION: Freeze the UI
+  // This ensures the 10+ TeamCard components are never re-rendered
+  // by React unless the teamData itself changes.
+  const renderedTeamCards = useMemo(() => {
+    return teamData.map((member, index) => (
+      <TeamCard key={member.id || index} member={member} />
+    ));
+  }, []);
 
-		// smoother replay
-		const onEnd = () => {
-			video.currentTime = 1.5;
-			video.play();
-		};
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
 
-		// pause when tab is hidden
-		const onVisibilityChange = () => {
-			if (document.hidden) {
-				video.pause();
-			} else {
-				video.play();
-			}
-		};
+    // 2. SAFE PLAYBACK: Handle browser restrictions
+    const safePlay = async () => {
+      try {
+        if (video.paused) await video.play();
+      } catch (err) {
+        // Autoplay was likely blocked; browser waits for user click
+      }
+    };
 
-		video.addEventListener("ended", onEnd);
-		document.addEventListener("visibilitychange", onVisibilityChange);
+    // 3. FRAME-SYNCED REPLAY: Fix the Red Bars
+    // Using requestAnimationFrame tells the browser to wait for a
+    // "free moment" to jump the video back to 1.5s, avoiding jank.
+    const onEnd = () => {
+      requestAnimationFrame(() => {
+        video.currentTime = 1.5;
+        safePlay();
+      });
+    };
 
-		return () => {
-			video.removeEventListener("ended", onEnd);
-			document.removeEventListener(
-				"visibilitychange",
-				onVisibilityChange
-			);
-		};
-	}, []);
+    // 4. RESOURCE SAVER: Intersection Observer
+    // This is the most important for efficiency. It stops the video
+    // completely when the user scrolls away from the section.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          safePlay();
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.1 }
+    );
 
-	return (
-		<section className='relative min-h-screen px-2 py-5'>
-			{/* Video */}
-			<video
-				ref={videoRef}
-				className='fixed inset-0 w-full h-full object-cover -z-10'
-				autoPlay
-				muted
-				playsInline
-				preload='metadata'>
-				{/* Mobile first */}
-				<source
-					src='/solar.mp4'
-					type='video/mp4'
-					media='(max-width: 768px)'
-				/>
+    const onVisibilityChange = () => {
+      document.hidden ? video.pause() : safePlay();
+    };
 
-				{/* Desktop */}
-				<source
-					src='/solar.mp4'
-					type='video/mp4'
-					media='(min-width: 769px)'
-				/>
-			</video>
+    video.addEventListener("ended", onEnd);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    if (sectionRef.current) observer.observe(sectionRef.current);
 
-			<div className='max-w-7xl mx-auto'>
-				<h2 className='text-center text-3xl md:text-4xl font-bold text-white mb-12'>
-					Our Core Team
-				</h2>
+    return () => {
+      video.removeEventListener("ended", onEnd);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      observer.disconnect();
+    };
+  }, []);
 
-				<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 place-items-center'>
-					{teamData.map((member, index) => (
-						<TeamCard key={index} member={member} />
-					))}
-				</div>
-			</div>
-		</section>
-	);
+  return (
+    <section
+      ref={sectionRef}
+      className="relative min-h-screen px-4 py-12 overflow-hidden"
+    >
+      {/* 5. HARDWARE ACCELERATION: CSS fixes for the Main Thread
+          transform: translateZ(0) pushes the video to the GPU.
+          will-change prevents the browser from being surprised by the video loop.
+      */}
+      <video
+        ref={videoRef}
+        className="fixed inset-0 w-full h-full object-cover -z-10 pointer-events-none"
+        style={{
+          willChange: "transform",
+          transform: "translateZ(0)",
+          backfaceVisibility: "hidden",
+        }}
+        autoPlay
+        muted
+        playsInline
+        disablePictureInPicture
+        preload="auto"
+        poster="/solar-poster.webp"
+      >
+        <source src="/solar.mp4" type="video/mp4" />
+      </video>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <h2 className="text-center text-3xl md:text-5xl font-bold text-white mb-16 drop-shadow-xl">
+          Our Core Team
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 place-items-center">
+          {renderedTeamCards}
+        </div>
+      </div>
+    </section>
+  );
 }
