@@ -63,3 +63,14 @@ html, body {
   margin: 0;
   width: 100%;
 }
+
+@import "tailwindcss";
+
+@theme {
+  --animate-orbital: orbit-trail 6s linear infinite;
+}
+
+@keyframes orbit-trail {
+  from { stroke-dashoffset: 400; }
+  to { stroke-dashoffset: 0; }
+}

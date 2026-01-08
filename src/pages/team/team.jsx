@@ -1,153 +1,78 @@
-import React from 'react';
-import bgImage from '../../assets/illustration/teamBg.png';
-import coBox from '../../assets/illustration/co_box.png';
-import instagramLogo from '../../assets/socialMediaLogo/instaLogo.png';
-import linkedinLogo from '../../assets/socialMediaLogo/linkedInLogo.png';
-import teamData from './teamData.json'; 
-import coordinatorData from './coordinator.json'; 
-import executiveData from './executive.json'; 
-import './team.css'; 
+// components/TeamSection.jsx
+import TeamCard from "./Card.jsx";
+import { teamData } from "./data/data.js";
+import { useRef, useEffect } from "react";
 
-function Team() {
-  return (
-    <div
-      className="w-full min-h-screen bg-cover bg-fixed bg-center text-white pt-[80px]"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundColor: 'black',
-      }}
-    >
-      {/* Section Heading */}
-      <div className="text-center font-crossFly uppercase text-4xl font-extrabold py-10">
-        <span className="text-white font-crossFly">TEAM</span> <span className="text-rose-500 font-crossFly">SHAURYA</span>
-      </div>
+export default function Team() {
+	const videoRef = useRef(null);
 
-      {/* Render Team Sections Dynamically */}
-      {Object.keys(teamData).length > 0 ? (
-        Object.keys(teamData).map((designation, index) => (
-          <div key={index} className="py-10">
-            {/* Designation Heading */}
-            <div className="text-center font-crossFly text-3xl font-semibold mb-10 mt-5 relative group">
-              {designation.split(/(?=[A-Z])/).join(" ")} {/* Format designation name */}
-              <span className="absolute bottom-0 left-1/2 w-0 h-1 bg-rose-500 transition-all duration-300 transform -translate-x-1/2 group-hover:w-32"/>
-            </div>
+	useEffect(() => {
+		const video = videoRef.current;
+		if (!video) return;
 
-            {/* Card Section */}
-            <div className="flex justify-center flex-wrap gap-10 px-10 pb-10">
-              {teamData[designation].map((member, idx) => (
-                <div key={idx} className="flip-card w-[300px] h-[400px]">
-                  <div className="flip-card-inner">
-                    {/* Front of Card */}
-                    <div className="flip-card-front relative rounded-lg overflow-hidden  ">
-                      <img src={member.Photo} alt={`${member.Name}'s photo`} />
-                      <div className="absolute bottom-0 w-full bg-black bg-opacity-20 text-white text-center p-2">
-                        <h2 className="text-lg font-bold">{member.Name}</h2>
-                        <p className="text-sm">{member.Branch}</p>
-                      </div>
-                    </div>
+		// smoother replay
+		const onEnd = () => {
+			video.currentTime = 1.5;
+			video.play();
+		};
 
-                    {/* Back of Card */}
-                    <div className="flip-card-back bg-gray-900 rounded-lg shadow-lg flex flex-col items-center justify-center">
-                      <h2 className="text-xl font-bold mb-4 ">{member.Name}</h2>
-                      <div className="flex space-x-4">
-                        <a
-                          href={member.instagram}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={`Visit ${member.Name}'s Instagram profile`}
-                          className="hover:text-pink-400"
-                        >
-                          <img
-                            src={instagramLogo}
-                            alt="Instagram"
-                            className="w-8 h-8 transition-transform transform hover:scale-110"
-                          />
-                        </a>
-                        <a
-                          href={member.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={`Visit ${member.Name}'s LinkedIn profile`}
-                          className="hover:text-blue-400"
-                        >
-                          <img
-                            src={linkedinLogo}
-                            alt="LinkedIn"
-                            className="w-8 h-8 transition-transform transform hover:scale-110"
-                          />
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))
-      ) : (
-        <div className="text-center text-xl font-semibold py-10">
-          No team data available.
-        </div>
-      )}
+		// pause when tab is hidden
+		const onVisibilityChange = () => {
+			if (document.hidden) {
+				video.pause();
+			} else {
+				video.play();
+			}
+		};
 
-      {/* Coordinators Section */}
-<div className="py-10">
-  <div className="text-center font-crossFly text-3xl font-semibold mb-10 mt-5">
-    Coordinators
-    
-  </div>
-  {Object.entries(coordinatorData).map(([domain, members], idx) => (
-    <div key={idx} className="py-5">
-      <h3 className="text-xl font-vermin font-bold text-center mb-5">{domain}</h3>
-      <ul className="flex flex-wrap  justify-center gap-5">
-        {members.map((member, i) => (
-          <li
-            key={i}
-            className="relative  flex items-center justify-center text-white p-4 rounded-lg shadow-md w-[210px] h-[160px]"
-            style={{
-              backgroundImage: `url(${coBox})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-              color: "#ffffff",
-              fontWeight: "bold",
-              textAlign: "center",
-              borderRadius: "10px",
-            }}
-          >
-            <span className="z-10">{member}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  ))}
-</div>
+		video.addEventListener("ended", onEnd);
+		document.addEventListener("visibilitychange", onVisibilityChange);
 
+		return () => {
+			video.removeEventListener("ended", onEnd);
+			document.removeEventListener(
+				"visibilitychange",
+				onVisibilityChange
+			);
+		};
+	}, []);
 
-      {/* Executives Section */}
-      <div className="py-10">
-  <div className="text-center font-crossFly text-3xl font-semibold mb-10 mt-5">
-    Executives
-  </div>
-  {Object.entries(executiveData).map(([domain, members], idx) => (
-    <div key={idx} className="py-5">
-      <h3 className="text-xl font-vermin  font-bold text-center mb-5">{domain}</h3>
-      <ul className="flex flex-wrap justify-center gap-5">
-        {members.map((member, i) => (
-          <li
-            key={i}
-            className="relative flex items-center justify-center text-white p-4 rounded-lg shadow-md w-[210px] h-[80px] bg-white/10 border border-[#f43f5d60] backdrop-blur-md"
-          >
-            <h4 className="font-semibold text-center">{member}</h4>
-          </li>
-        ))}
-      </ul>
-    </div>
+	return (
+		<section className='relative min-h-screen px-2 py-5'>
+			{/* Video */}
+			<video
+				ref={videoRef}
+				className='fixed inset-0 w-full h-full object-cover -z-10'
+				autoPlay
+				muted
+				playsInline
+				preload='metadata'>
+				{/* Mobile first */}
+				<source
+					src='/solar.mp4'
+					type='video/mp4'
+					media='(max-width: 768px)'
+				/>
 
-        ))}
-      </div>
-    </div>
-  );
+				{/* Desktop */}
+				<source
+					src='/solar.mp4'
+					type='video/mp4'
+					media='(min-width: 769px)'
+				/>
+			</video>
+
+			<div className='max-w-7xl mx-auto'>
+				<h2 className='text-center text-3xl md:text-4xl font-bold text-white mb-12'>
+					Our Core Team
+				</h2>
+
+				<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 place-items-center'>
+					{teamData.map((member, index) => (
+						<TeamCard key={index} member={member} />
+					))}
+				</div>
+			</div>
+		</section>
+	);
 }
-
-export default Team;
